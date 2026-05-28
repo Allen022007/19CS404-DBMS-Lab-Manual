@@ -1,4 +1,4 @@
-# ER Diagram Workshop – Submission Template
+# ER Diagram Workshop
 ```
 Name: W Allen Johnston Ozario
 ### Reg No: 212224110004
