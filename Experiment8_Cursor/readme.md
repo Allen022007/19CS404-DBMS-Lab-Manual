@@ -1,15 +1,28 @@
-# Experiment 7: PL/SQL – Variables, Control Structures and Loops
-```
-Name : W Alen Johnston Ozario
-Reg. No : 212224110004
-```
-## AIM
-To write and execute simple PL/SQL programs using variables, loops, and conditional statements.
+# Experiment 8: PL/SQL Cursor Programs
 
+## AIM
+To write and execute PL/SQL programs using cursors and exception handling to manage runtime errors effectively and display appropriate messages.
 
 ## THEORY
 
-PL/SQL, which stands for Procedural Language extensions to the Structured Query Language (SQL). It is a combination of SQL along with the procedural features of programming languages.
+In PL/SQL, cursors are used to handle query result sets row-by-row. 
+
+There are two types of cursors:
+
+- Implicit Cursors: Automatically created by PL/SQL for single-row queries.
+- Explicit Cursors: Declared and controlled by the programmer for multi-row queries.
+
+Types of Explicit Cursors:
+
+1. Simple Cursor: Basic cursor to iterate over multiple rows.
+
+2. Parameterized Cursor: Accepts parameters to filter the result dynamically.
+
+3. Cursor FOR Loop: Simplifies cursor operations (open, fetch, close).
+
+4. %ROWTYPE Cursor: Fetches entire row into a record using %ROWTYPE.
+
+5. Cursor with FOR UPDATE: Used for row-level locking and updating the rows while looping.
 
 **Syntax:**
 ```sql
@@ -23,179 +36,261 @@ END;
 ```
 
 ### Basic Components of PL/SQL Block:
+
 - DECLARE: Section to declare variables and constants.
 - BEGIN: The execution section that contains PL/SQL statements.
 - EXCEPTION: Handles errors or exceptions that occur in the program.
 - END: Marks the end of the PL/SQL block.
 
-# PL/SQL Programs – Steps and Expected Output
+**Exception Handling**
 
-## 1. Write a PL/SQL program to find the Greatest of Two Numbers
+PL/SQL provides a robust mechanism to handle runtime errors using exception handling blocks. When an error occurs during execution, control is passed to the EXCEPTION section, where specific or general errors can be handled gracefully.
 
-### Steps:
-- Declare two numeric variables and initialize them.
-- Use an `IF` statement to compare the values.
-- Display the greater number using `DBMS_OUTPUT.PUT_LINE`.
+### Components of Exception Handling:
+- Predefined Exceptions: Automatically raised by PL/SQL for common errors (e.g., NO_DATA_FOUND, TOO_MANY_ROWS, ZERO_DIVIDE).
+- User-defined Exceptions: Declared explicitly in the declaration section using the EXCEPTION keyword.
+- WHEN OTHERS: A generic handler for all exceptions not handled explicitly.
 
-**Expected Output:**  
-Greater number is: 80
-
-## program:
-```
-DECLARE
-    num1 NUMBER := 80;  -- First number
-    num2 NUMBER := 50;  -- Second number
+```sql
 BEGIN
-    IF num1 > num2 THEN
-        DBMS_OUTPUT.PUT_LINE('Greater number is: ' || num1);
-    ELSE
-        DBMS_OUTPUT.PUT_LINE('Greater number is: ' || num2);
-    END IF;
+   -- Statements
+EXCEPTION
+   WHEN exception_name THEN
+      -- Handling code
+   WHEN OTHERS THEN
+      -- Handling for unknown errors
 END;
 ```
-## output:
 
-<img width="785" height="198" alt="image" src="https://github.com/user-attachments/assets/1af7f555-0c30-47ea-9658-2d9f65153fe1" />
+### **Question 1: Simple Cursor with Exception Handling**
 
-## 2. Write a PL/SQL program to Calculate Sum of First N Natural Numbers
+**Write a PL/SQL program using a simple cursor to fetch employee names and designations from the `employees` table. Implement exception handling for the following cases:**
 
-### Steps:
-- Declare a variable `n` and assign a value (e.g., 10).
-- Initialize a `sum` variable to 0.
-- Use a `WHILE` loop to iterate from 1 to `n`, adding each number to the sum.
-- Display the result using `DBMS_OUTPUT.PUT_LINE`.
+1. **NO_DATA_FOUND**: When no rows are fetched.
+2. **OTHERS**: Any other unexpected errors during execution.
 
-**Expected Output:**  
-Sum of first 10 natural numbers is: 55
+**Steps:**
 
-## program:
+- Create an `employees` table with fields `emp_id`, `emp_name`, and `designation`.
+- Insert some sample data into the table.
+- Use a simple cursor to fetch and display employee names and designations.
+- Implement exception handling to catch the relevant exceptions and display appropriate messages.
+
+#### Program:
 ```
 DECLARE
-    n NUMBER := 10;       -- Number up to which sum is calculated
-    i NUMBER := 1;        -- Loop counter
-    total_sum NUMBER := 0; -- To store the sum
+   CURSOR emp_cur IS
+      SELECT emp_name, designation FROM employees;
+   v_name employees.emp_name%TYPE;
+   v_desg employees.designation%TYPE;
 BEGIN
-    WHILE i <= n LOOP
-        total_sum := total_sum + i;
-        i := i + 1;
-    END LOOP;
-
-    DBMS_OUTPUT.PUT_LINE('Sum of first ' || n || ' natural numbers is: ' || total_sum);
+   OPEN emp_cur;
+   LOOP
+      FETCH emp_cur INTO v_name, v_desg;
+      EXIT WHEN emp_cur%NOTFOUND;
+      DBMS_OUTPUT.PUT_LINE('Name: ' || v_name || ', Designation: ' || v_desg);
+   END LOOP;
+   CLOSE emp_cur;
+EXCEPTION
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
 END;
 ```
-## output:
 
-<img width="718" height="271" alt="image" src="https://github.com/user-attachments/assets/fd6b6aca-a92f-42e5-a98f-d14b9ad644a1" />
+**Output:**  
+The program should display the employee details or an error message.
 
-## 3. Write a PL/SQL program to generate Fibonacci series
+![image](https://github.com/user-attachments/assets/869bbe32-5966-46ee-a391-1872038e2192)
 
-### Steps:
-- Declare the variable `n` to indicate how many terms to generate.
-- Initialize the first two Fibonacci numbers (0 and 1).
-- Use a loop to generate the next terms using the formula `c = a + b`.
-- Print each term in the series.
 
-**Expected Output:**  
-n = 7  
-Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8
+---
 
-## program:
+### **Question 2: Parameterized Cursor with Exception Handling**
+
+**Write a PL/SQL program using a parameterized cursor to retrieve and display employees with a salary in a given range. Implement exception handling for the following errors:**
+
+1. **NO_DATA_FOUND**: When no employees meet the salary criteria.
+2. **OTHERS**: For any unexpected errors during the execution.
+
+**Steps:**
+
+- Modify the `employees` table by adding a `salary` column.
+- Insert sample salary values for the employees.
+- Use a parameterized cursor to accept a salary range as input and fetch employees within that range.
+- Implement exception handling to catch and display relevant error messages.
+
+#### Program:
 ```
 DECLARE
-    n NUMBER := 7;     -- Number of terms in the series
-    a NUMBER := 0;     -- First term
-    b NUMBER := 1;     -- Second term
-    c NUMBER;          -- Next term
-    i NUMBER := 3;     -- Counter starting from 3 since first two terms are already known
+   CURSOR sal_cursor(min_sal NUMBER, max_sal NUMBER) IS
+      SELECT emp_name, salary FROM employees WHERE salary BETWEEN min_sal AND max_sal;
+   v_name employees.emp_name%TYPE;
+   v_salary employees.salary%TYPE;
+   found BOOLEAN := FALSE;
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('Fibonacci sequence:');
-    DBMS_OUTPUT.PUT_LINE(a);
-    DBMS_OUTPUT.PUT_LINE(b);
-
-    WHILE i <= n LOOP
-        c := a + b;
-        DBMS_OUTPUT.PUT_LINE(c);
-        a := b;
-        b := c;
-         i := i + 1;
-    END LOOP;
+   FOR rec IN sal_cursor(40000, 80000) LOOP
+      DBMS_OUTPUT.PUT_LINE('Name: ' || rec.emp_name || ', Salary: ' || rec.salary);
+      found := TRUE;
+   END LOOP;
+   IF NOT found THEN
+      RAISE NO_DATA_FOUND;
+   END IF;
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+      DBMS_OUTPUT.PUT_LINE('No employees in the given salary range.');
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
 END;
 ```
-## output:
 
-<img width="683" height="349" alt="image" src="https://github.com/user-attachments/assets/5084c654-05c2-40d1-9f81-5c7751c75eb5" />
+**Output:**  
+The program should display the employee details within the specified salary range or an error message if no data is found.
+
+![image](https://github.com/user-attachments/assets/c13969de-77d1-482d-b8db-644fbe8357f3)
 
 
-## 4. Write a PL/SQL Program to display the number in Reverse Order
+---
 
-### Steps:
-- Declare a variable `n` and assign a value (e.g., 1535).
-- Use a loop to extract each digit using modulo and reverse the number.
-- Display the reversed number.
+### **Question 3: Cursor FOR Loop with Exception Handling**
 
-**Expected Output:**  
-n = 1535  
-Reversed number is 5351
+**Write a PL/SQL program using a cursor FOR loop to retrieve and display all employee names and their department numbers from the `employees` table. Implement exception handling for the following cases:**
 
-## program:
+1. **NO_DATA_FOUND**: If no employees are found in the database.
+2. **OTHERS**: For any other unexpected errors.
+
+**Steps:**
+
+- Modify the `employees` table by adding a `dept_no` column.
+- Insert sample department numbers for employees.
+- Use a cursor FOR loop to fetch and display employee names along with their department numbers.
+- Implement exception handling to catch the relevant exceptions.
+
+#### Program:
 ```
 DECLARE
-    n NUMBER := 1535;       -- Original number
-    original NUMBER := 1535;-- To keep the original number for display
-    reversed NUMBER := 0;   -- To store the reversed number
-    digit NUMBER;           -- To extract each digit
+   found BOOLEAN := FALSE;
 BEGIN
-    WHILE n > 0 LOOP
-        digit := MOD(n, 10);              -- Get the last digit
-        reversed := reversed * 10 + digit;-- Build the reversed number
-        n := TRUNC(n / 10);               -- Remove the last digit
-    END LOOP;
-
-    DBMS_OUTPUT.PUT_LINE('n = ' || original);
-    DBMS_OUTPUT.PUT_LINE('Reversed number is ' || reversed);
+   FOR emp_rec IN (SELECT emp_name, dept_no FROM employees) LOOP
+      DBMS_OUTPUT.PUT_LINE('Name: ' || emp_rec.emp_name || ', Dept No: ' || emp_rec.dept_no);
+      found := TRUE;
+   END LOOP;
+   IF NOT found THEN
+      RAISE NO_DATA_FOUND;
+   END IF;
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+      DBMS_OUTPUT.PUT_LINE('No employees found.');
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
 END;
+
 ```
-## output:
 
-<img width="685" height="248" alt="image" src="https://github.com/user-attachments/assets/5dafbfc5-fa4a-4f36-a26f-1cec414d8d2c" />
+**Output:**  
+The program should display employee names with their department numbers or the appropriate error message if no data is found.
+
+![image](https://github.com/user-attachments/assets/2cb312dd-799b-4584-8b7c-60e14222d659)
 
 
-## 5. Write a PL/SQL program to find the largest of three numbers
+---
 
-### Steps:
-- Declare three numeric variables `a`, `b`, and `c`.
-- Use nested `IF-ELSIF-ELSE` conditions to find the largest among the three.
-- Display the largest number.
+### **Question 4: Cursor with `%ROWTYPE` and Exception Handling**
 
-**Expected Output:**  
-a = 10, b = 9, c = 15  
-Largest of three number is 15
+**Write a PL/SQL program that uses a cursor with `%ROWTYPE` to fetch and display complete employee records (emp_id, emp_name, designation, salary). Implement exception handling for the following errors:**
 
-## program:
+1. **NO_DATA_FOUND**: When no employees are found in the database.
+2. **OTHERS**: For any other errors that occur.
+
+**Steps:**
+
+- Modify the `employees` table by adding `emp_id`, `emp_name`, `designation`, and `salary` fields.
+- Insert sample data into the `employees` table.
+- Declare a cursor using `%ROWTYPE` to fetch complete rows from the `employees` table.
+- Implement exception handling to catch the relevant exceptions and display appropriate messages.
+
+#### Program:
 ```
 DECLARE
-    a NUMBER := 10;
-    b NUMBER := 9;
-    c NUMBER := 15;
-    largest NUMBER;
+   CURSOR emp_cur IS SELECT * FROM employees;
+   emp_rec employees%ROWTYPE;
+   found BOOLEAN := FALSE;
 BEGIN
-    IF a >= b AND a >= c THEN
-        largest := a;
-    ELSIF b >= a AND b >= c THEN
-        largest := b;
-    ELSE
-        largest := c;
-    END IF;
+   OPEN emp_cur;
+   LOOP
+      FETCH emp_cur INTO emp_rec;
+      EXIT WHEN emp_cur%NOTFOUND;
+      DBMS_OUTPUT.PUT_LINE('ID: ' || emp_rec.emp_id || ', Name: ' || emp_rec.emp_name ||
+                           ', Designation: ' || emp_rec.designation || ', Salary: ' || emp_rec.salary);
+      found := TRUE;
+   END LOOP;
+   CLOSE emp_cur;
+   IF NOT found THEN
+      RAISE NO_DATA_FOUND;
+   END IF;
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+      DBMS_OUTPUT.PUT_LINE('No employee data found.');
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
 
-    DBMS_OUTPUT.PUT_LINE('a = ' || a || ', b = ' || b || ', c = ' || c);
-    DBMS_OUTPUT.PUT_LINE('Largest of three number is ' || largest);
+```
+
+**Output:**  
+The program should display employee records or the appropriate error message if no data is found.
+
+![image](https://github.com/user-attachments/assets/b5b1bb30-7143-422a-af1a-37c106796f3e)
+
+
+
+---
+
+### **Question 5: Cursor with FOR UPDATE Clause and Exception Handling**
+
+**Write a PL/SQL program using a cursor with the `FOR UPDATE` clause to update the salary of employees in a specific department. Implement exception handling for the following cases:**
+
+1. **NO_DATA_FOUND**: If no rows are affected by the update.
+2. **OTHERS**: For any unexpected errors during execution.
+
+**Steps:**
+
+- Modify the `employees` table to include a `dept_no` and `salary` field.
+- Insert sample data into the `employees` table with different department numbers.
+- Use a cursor with the `FOR UPDATE` clause to lock the rows of employees in a specific department and update their salary.
+- Implement exception handling to handle `NO_DATA_FOUND` or other errors that may occur.
+
+#### Program:
+```
+DECLARE
+   CURSOR emp_cur IS
+      SELECT emp_id, salary FROM employees WHERE dept_no = 10 FOR UPDATE;
+   v_found BOOLEAN := FALSE;
+BEGIN
+   FOR emp_rec IN emp_cur LOOP
+      UPDATE employees SET salary = emp_rec.salary + 1000 WHERE emp_id = emp_rec.emp_id;
+      DBMS_OUTPUT.PUT_LINE('Updated salary for emp_id: ' || emp_rec.emp_id);
+      v_found := TRUE;
+   END LOOP;
+   IF NOT v_found THEN
+      RAISE NO_DATA_FOUND;
+   END IF;
+   COMMIT;
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+      DBMS_OUTPUT.PUT_LINE('No employees found in department 10.');
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('Error during update: ' || SQLERRM);
 END;
 ```
-## output:
 
-<img width="697" height="266" alt="image" src="https://github.com/user-attachments/assets/294439bd-3e53-4a06-a1c4-c1736a7a6bc5" />
+**Output:**  
+The program should update employee salaries and display a message, or it should display an error message if no data is found.
 
+![image](https://github.com/user-attachments/assets/d18db329-2988-4abf-9b59-3c7652da50ef)
+
+
+---
 
 ## RESULT
-Thus, the PL/SQL programs using variables, conditionals, and loops were executed successfully.
+Thus, the program successfully executed and displayed employee details using a cursor. 
 
